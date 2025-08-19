@@ -21,15 +21,15 @@ This project is based on the original Franka ROS 2 repository, with a custom con
 - ROS 2 grasping control
 - Trajectory visualization
 
-This is a part of my work at [AIST tokyo] (https://www.aist.go.jp/waterfront/index_en.html)
+This is a part of my work at [**AIST tokyo**](https://www.aist.go.jp/waterfront/index_en.html)
 # Franka ROS 2 Dependencies Setup
 
 This repository contains a `.repos` file that helps you clone the required dependencies for Franka ROS 2. You also need to build ruckig on the top.
 
 ## Prerequisites
 
-- Franka ros2 [https://github.com/frankarobotics/franka_ros2]
-- ruckig [https://github.com/pantor/ruckig]
+- Franka ros2 (Here)[https://github.com/frankarobotics/franka_ros2]
+- ruckig (Here)[https://github.com/pantor/ruckig]
 - Python (3.13 tested)
 - ubuntu 22.04
 - ROS humble

@@ -109,10 +109,32 @@ ros2 launch franka_fr3_moveit_config moveit.launch.py robot_ip:=dont-care use_fa
 
 If you want to run this example with namespaces, you would need to use the argument `namespace` and manually write your namespace in `moveit.rviz` under `Move Group Namespace`.
 
+# Install ruckig
+You need to install ruckig in the folder of your choice or in a global install. But I recommand to build it in the _src/libfranka/include_ folder.
+
+After that you can put the right path in the **arm_sim2real.cpp** includes and compile. 
+check this repo : https://github.com/pantor/ruckig
+
+
 # Run the ROS2 custom controller
+
+Navigate to the folder:
 ```bash
 cd src/libfranka/build
 ```
+Compile:
+```bash
+make arm_sim2real
+```
+Execute :
+```bash
+./arm_sim2real --ip 192.168.1.299 --filter 0.15
+```
+
+The program will record joint states from the topic **/joint_states_isaac** during 10 sec. After that it will filter the trajectory and make a quintic interpolation to the right control cycle. You can just press enter and the robot will play the interpolated trajectory
+
+> **Note:** The filtering parameter can be tuned depending of your use case. It is an important parameter as it directly impact the smoothness of the motion. A high value will make the trajectory less accurate but smoother as it will have less intermediate positions. A low value will respect more the inputed trajectory but can conduct to some jiggle depending how good is the inputed trajectory.
+
 
 
 

@@ -20,7 +20,8 @@ This project is based on the original Franka ROS 2 repository, with a custom con
 - Motion smoothing  
 - ROS 2 grasping control
 - Trajectory visualization
-- 
+
+This is a part of my work at (AIST tokyo) [https://www.aist.go.jp/waterfront/index_en.html]
 # Franka ROS 2 Dependencies Setup
 
 This repository contains a `.repos` file that helps you clone the required dependencies for Franka ROS 2. You also need to build ruckig on the top.

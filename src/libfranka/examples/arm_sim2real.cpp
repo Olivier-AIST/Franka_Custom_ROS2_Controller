@@ -23,8 +23,68 @@
 #include <fstream>
 #include </home/pbd/franka_ros2_ws/src/libfranka/include/ruckig/include/ruckig/ruckig.hpp> // Change to yours
 #include "std_msgs/msg/bool.hpp"
+#include <string>
+#include <cstring>
+
 using namespace std;
 using namespace ruckig;
+
+struct ProgramArgs {
+    string robot_ip = "192.168.1.100";  
+    double filter_duration = 0.1;       
+};
+
+void print_help(const char* program_name) {
+    cout << "Usage: " << program_name << " [options]" << endl;
+    cout << "Options:" << endl;
+    cout << "  --ip <ip_address>       IP address of the robot (default: 192.168.1.100)" << endl;
+    cout << "  --filter <duration>     Filter duration for intermediate positions (default: 0.1)" << endl;
+    cout << "  --help                  Show this help message" << endl;
+}
+
+ProgramArgs parse_args(int argc, char* argv[]) {
+    ProgramArgs args;
+    
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--ip") == 0) {
+            if (i + 1 < argc) {
+                args.robot_ip = argv[++i];
+            } else {
+                cerr << "Error: --ip requires an IP address argument" << endl;
+                exit(1);
+            }
+        }
+        else if (strcmp(argv[i], "--filter") == 0) {
+            if (i + 1 < argc) {
+                try {
+                    args.filter_duration = stod(argv[++i]);
+                    if (args.filter_duration <= 0) {
+                        cerr << "Error: --filter duration must be positive" << endl;
+                        exit(1);
+                    }
+                } catch (const exception& e) {
+                    cerr << "Error: Invalid filter duration value" << endl;
+                    exit(1);
+                }
+            } else {
+                cerr << "Error: --filter requires a duration value" << endl;
+                exit(1);
+            }
+        }
+        else if (strcmp(argv[i], "--help") == 0) {
+            print_help(argv[0]);
+            exit(0);
+        }
+        else {
+            cerr << "Error: Unknown option " << argv[i] << endl;
+            print_help(argv[0]);
+            exit(1);
+        }
+    }
+    
+    return args;
+}
+
 class SubscriberJointStates : public rclcpp::Node {
  public:
   SubscriberJointStates() : Node("subscriberJointStates") {
@@ -48,8 +108,15 @@ array<double, 8> vector_to_array(const std::vector<double>& vec) {
 
 int main(int argc, char* argv[]) {
   std::chrono::time_point<std::chrono::steady_clock> start;
+  
+  ProgramArgs args = parse_args(argc, argv);
+  
+  cout << "Robot IP: " << args.robot_ip << endl;
+  cout << "Filter duration: " << args.filter_duration << endl;
+  cout << endl;
+  
   try {
-    franka::Robot robot("192.168.1.100");
+    franka::Robot robot(args.robot_ip);  
     size_t time = 0;
     rclcpp::init(argc, argv);
     shared_ptr<SubscriberJointStates> node = make_shared<SubscriberJointStates>();
@@ -59,20 +126,11 @@ int main(int argc, char* argv[]) {
     setDefaultBehavior(robot);
     auto timeinit = chrono::steady_clock::now();
 
-
-
     auto node_pub = rclcpp::Node::make_shared("gripper_publisher");
     auto publisher = node->create_publisher<std_msgs::msg::Bool>("gripper_command", 10);
 
     auto msg_pub = std_msgs::msg::Bool();
     msg_pub.data = true;
-
-
-
-
-
-
-
 
     // Listen the joints states and stock them
     while (std::chrono::duration<double>(std::chrono::steady_clock::now() - timeinit).count() <
@@ -106,7 +164,6 @@ int main(int argc, char* argv[]) {
         {{20.0, 20.0, 20.0, 25.0, 25.0, 25.0}}, {{20.0, 20.0, 20.0, 25.0, 25.0, 25.0}});
 
     // Print collected input data
-    
     const size_t maxWaypoints =tab_mesg.size();
     double periode_In = duration_sec/(double)tab_mesg.size();
     cout<<"Duration: "<<duration_sec<<endl;
@@ -115,12 +172,7 @@ int main(int argc, char* argv[]) {
     int nb_interpolation = static_cast<int>(ceil(periode_In / 0.001));
     cout<<"Minimum needed interpolations: : "<<nb_interpolation<<endl;
 
-
-
-
-
     // Trajectory generation
-    
     const double control_cycle = 0.001;
     const size_t DOFS = 8;
     Ruckig<DOFS> ruckig(control_cycle,maxWaypoints);
@@ -129,8 +181,6 @@ int main(int argc, char* argv[]) {
     input.max_velocity= {2.175,2.175,2.175,2.175,2.61,2.61,2.61,0.1};
     input.max_acceleration={2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0};
     input.max_jerk = {3000.0, 3000.0, 3000.0, 3000.0, 3000.0, 3000.0, 3000.0,3000.0};  // en rad/s³
-    
-
 
     input.current_position=vector_to_array(tab_mesg[0]->position);
     input.intermediate_positions = {vector_to_array(tab_mesg[1]->position)};
@@ -140,74 +190,20 @@ int main(int argc, char* argv[]) {
     input.target_position =vector_to_array(tab_mesg[maxWaypoints-1]->position);
     
 
-      std::array<double, 8> per_section_minimum_duration;
-   per_section_minimum_duration.fill(0.1);
+    std::array<double, 8> per_section_minimum_duration;
+    per_section_minimum_duration.fill(args.filter_duration);  // Utiliser la durée des arguments
     input.intermediate_positions = ruckig.filter_intermediate_positions(input,per_section_minimum_duration);
 
     cout<<"Input are valid."<<ruckig.validate_input(input, false,true)<<endl;
 
-
     std::vector<std::array<double, 8>> trajectory;
     trajectory.push_back(vector_to_array(tab_mesg[0]->position));
-
-    
-
-
-
-
 
     while (ruckig.update(input, output) == Result::Working) {
         trajectory.push_back(output.new_position);
         output.pass_to_input(input);
-
-        
     }
     cout<<"Number of joint states sended: "<<trajectory.size()<<endl;
-
-    
-    
-
-
-
-
-
-    // // verif
-    // for (int i =0;i<50;i++){
-    //   cout<<"tabmessage: : "<<tab_mesg[i]->position[0]<<endl;
-
-    // }
-    // for (int i =0;i<50;i++){
-    //   cout<<"traj_interpol: : "<<trajectory[i][0]<<endl;
-    //   if(i%(nb_interpolation) == 0){
-    //   cout<<"trajinterpol VERIFICATION: : "<<trajectory[i][0]<<endl;}
-
-    // }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     std::ofstream traj_file("/home/pbd/franka_ros2_ws/src/libfranka/examples/trajectory.csv");
     for (size_t i = 0; i < trajectory.size(); ++i) {
@@ -222,15 +218,8 @@ int main(int argc, char* argv[]) {
   std::cerr << " Erreur : impossible de créer le fichier trajectory.csv" << std::endl;
   return -1;
 }
-
-    
     traj_file.close();
 
-    
-
-
-
-    
     bool already_published = false;
     auto control_callback = [&](const franka::RobotState&,franka::Duration period) -> franka::JointPositions{
       time += period.toMSec();
@@ -239,8 +228,6 @@ int main(int argc, char* argv[]) {
         time = trajectory.size() - 1;
       }
         
-      
-      // franka::JointPositions output =q_goal;
       franka::JointPositions output = {{0, 0, 0, 0, 0, 0, 0}};
       
       output.q={trajectory[time][0],trajectory[time][1],trajectory[time][2],trajectory[time][3],trajectory[time][4],trajectory[time][5],trajectory[time][6]};
@@ -250,8 +237,6 @@ int main(int argc, char* argv[]) {
         already_published = true;
       }
 
-      
-
       if (time >= trajectory.size() - 1) {
         std::cout << std::endl << "Finished motion" << std::endl;
         return franka::MotionFinished(output);
@@ -259,10 +244,7 @@ int main(int argc, char* argv[]) {
       return output;
     };
 
-
     // Replay
-
-    
     auto active_control = robot.startJointPositionControl(
         research_interface::robot::Move::ControllerMode::kJointImpedance);
     
@@ -275,16 +257,12 @@ int main(int argc, char* argv[]) {
         auto joint_positions = control_callback(robot_state, duration);
         motion_finished = joint_positions.motion_finished;
         active_control->writeOnce(joint_positions);
-        
       }
       auto end = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "Execution time: " << elapsed.count() << " seconds" << std::endl;
-    
 
-  }
-
-  catch (const franka::Exception& e) {
+  } catch (const franka::Exception& e) {
     std::cout << e.what() << std::endl;
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = end - start;

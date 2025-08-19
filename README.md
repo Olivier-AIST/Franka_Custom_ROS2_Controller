@@ -1,0 +1,131 @@
+<h1 style="font-size: 3em;">ROS 2 custom controller</h1>
+
+
+
+#### Table of Contents
+- [About](#about)
+- [Setup](#setup)
+  - [Local Machine Installation](#local-machine-installation)
+- [Test the Setup](#test-the-setup)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+# About
+This project is based on the original Franka ROS 2 repository, with a custom controller implemented to extend its capabilities. The added functionalities include:
+
+- ROS 2 custom topics controller  
+- Modular interpolation of trajectories  
+- Trajectory replay  
+- Motion smoothing  
+- ROS 2 grasping control
+- Trajectory visualization
+- 
+# Franka ROS 2 Dependencies Setup
+
+This repository contains a `.repos` file that helps you clone the required dependencies for Franka ROS 2. You also need to build ruckig on the top.
+
+## Prerequisites
+
+- Franka ros2 [https://github.com/frankarobotics/franka_ros2]
+- ruckig [https://github.com/pantor/ruckig]
+- Python (3.13 tested)
+- ubuntu 22.04
+- ROS humble
+
+## Local Machine Installation
+1. **Install ROS 2 Development environment**
+
+    _**franka_ros2**_ is built upon _**ROS 2 Humble**_.
+
+    To set up your ROS 2 environment, follow the official _**humble**_ installation instructions provided [**here**](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html).
+    The guide discusses two main installation options: **Desktop** and **Bare Bones**.
+
+    #### Choose **one** of the following:
+    - **ROS 2 "Desktop Install"** (`ros-humble-desktop`)
+      Includes a full ROS 2 installation with GUI tools and visualization packages (e.g., Rviz and Gazebo).
+      **Recommended** for users who need simulation or visualization capabilities.
+
+    - **"ROS-Base Install (Bare Bones)"** (`ros-humble-ros-base`)
+      A minimal installation that includes only the core ROS 2 libraries.
+      Suitable for resource-constrained environments or headless systems.
+
+    ```bash
+    # replace <YOUR CHOICE> with either ros-humble-desktop or ros-humble-ros-base
+    sudo apt install <YOUR CHOICE>
+    ```
+    ---
+    Also install the **Development Tools** package:
+    ```bash
+    sudo apt install ros-dev-tools
+    ```
+    Installing the **Desktop** or **Bare Bones** should automatically source the **ROS 2** environment but, under some circumstances you may need to do this again:
+    ```bash
+    source /opt/ros/humble/setup.sh
+    ```
+
+2. **Create a ROS 2 Workspace:**
+   ```bash
+   mkdir -p ~/franka_ros2_ws/src
+   cd ~/franka_ros2_ws  # not into src
+   ```
+3. **Clone the Repositories:**
+   ```bash
+    git clone https://github.com/frankarobotics/franka_ros2.git src
+    ```
+4. **Install the dependencies**
+    ```bash
+    vcs import src < src/franka.repos --recursive --skip-existing
+    ```
+5. **Detect and install project dependencies**
+   ```bash
+   rosdep install --from-paths src --ignore-src --rosdistro humble -y
+   ```
+6. **Build**
+   ```bash
+   # use the --symlinks option to reduce disk usage, and facilitate development.
+   colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+   ```
+7. **Adjust Enviroment**
+   ```bash
+   # Adjust environment to recognize packages and dependencies in your newly built ROS 2 workspace.
+   source install/setup.sh
+   ```
+
+
+# Test the build
+   ```bash
+   colcon test
+   ```
+> Warnings can be expected.
+
+# Run a sample ROS 2 application
+
+To verify that your setup works correctly without a robot, you can run the following command to use dummy hardware:
+
+```bash
+ros2 launch franka_fr3_moveit_config moveit.launch.py robot_ip:=dont-care use_fake_hardware:=true
+```
+
+If you want to run this example with namespaces, you would need to use the argument `namespace` and manually write your namespace in `moveit.rviz` under `Move Group Namespace`.
+
+# Run the ROS2 custom controller
+```bash
+cd src/libfranka/build
+```
+
+
+
+
+# Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/frankarobotics/franka_ros2/blob/humble/CONTRIBUTING.md) for more details on how to contribute to this project.
+
+## License
+
+All packages of franka_ros2 are licensed under the Apache 2.0 license.
+
+## Contact
+
+
+

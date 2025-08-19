@@ -133,8 +133,24 @@ The program will record joint states from the topic **/joint_states_isaac** duri
 
 > **Note:** The filtering parameter can be tuned depending of your use case. It is an important parameter as it directly impact the smoothness of the motion. A high value will make the trajectory less accurate but smoother as it will have less intermediate positions. A low value will respect more the inputed trajectory but can conduct to some jiggle depending how good is the inputed trajectory.
 
+# Run the ROS2 gripper boolean controller
 
+Navigate to the folder:
+```bash
+cd src/libfranka/build
+```
+Compile:
+```bash
+make grasp_object
+```
+Execute :
+```bash
+./grasp_object 
+```
 
+I also designed a controller for the gripper . It will listen until  command is activated on the topic /gripper command. It will activate a grasp commandat max speed. You can change the width in the code.
+
+> **Note:** As the gripper and the arm of the franka are independent we can connect to the twice at the same time. You just need to open two terminals and execute them in parralel!
 
 
 # Contributing

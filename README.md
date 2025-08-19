@@ -101,19 +101,17 @@ This repository contains a `.repos` file that helps you clone the required depen
 
 # Run a sample ROS 2 application
 
-To verify that your setup works correctly without a robot, you can run the following command to use dummy hardware:
+To verify that your franka ros2 lib works correctly without a robot, you can run the following command to use dummy hardware:
 
 ```bash
 ros2 launch franka_fr3_moveit_config moveit.launch.py robot_ip:=dont-care use_fake_hardware:=true
 ```
 
-If you want to run this example with namespaces, you would need to use the argument `namespace` and manually write your namespace in `moveit.rviz` under `Move Group Namespace`.
-
 # Install ruckig
 You need to install ruckig in the folder of your choice or in a global install. But I recommand to build it in the _src/libfranka/include_ folder.
 
 After that you can put the right path in the **arm_sim2real.cpp** includes and compile. 
-check this repo : https://github.com/pantor/ruckig
+Check this repo : https://github.com/pantor/ruckig
 
 
 # Run the ROS2 custom controller
@@ -141,11 +139,11 @@ The program will record joint states from the topic **/joint_states_isaac** duri
 
 # Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/frankarobotics/franka_ros2/blob/humble/CONTRIBUTING.md) for more details on how to contribute to this project.
+Contributions are welcome!
 
 ## License
 
-All packages of franka_ros2 are licensed under the Apache 2.0 license.
+All packages of this project are licensed under the Apache 2.0 license.
 
 ## Contact
 

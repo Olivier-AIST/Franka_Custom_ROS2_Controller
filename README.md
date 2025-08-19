@@ -28,8 +28,8 @@ This repository contains a `.repos` file that helps you clone the required depen
 
 ## Prerequisites
 
-- Franka ros2 (Here)[https://github.com/frankarobotics/franka_ros2]
-- ruckig (Here)[https://github.com/pantor/ruckig]
+- Franka ros2 [Here](https://github.com/frankarobotics/franka_ros2)
+- ruckig [Here](https://github.com/pantor/ruckig)
 - Python (3.13 tested)
 - ubuntu 22.04
 - ROS humble
